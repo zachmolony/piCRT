@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>piCRT</title>
+    <style>
+      body {
+        background-color: black;
+        color: #00ff00; /* Terminal green */
+        font-family: monospace;
+        margin: 20px;
+        font-size: 34px;
+        text-align: center;
+        width: 100%;
+      }
+      pre {
+        font-size: 36px;
+        line-height: 1.2;
+        white-space: pre;
+      }
+      button {
+        background-color: black;
+        color: #00ff00;
+        font-family: monospace;
+        border: 4px solid #00ff00;
+        padding: 24px 32px;
+        margin: 24px 0;
+        cursor: pointer;
+        font-size: 42px;
+      }
+      button:hover {
+        background-color: #00ff00;
+        color: black;
+      }
+      .ascii-title {
+        margin-bottom: 10px;
+      }
+      .description {
+        font-size: 38px;
+        margin: 40px 0 250px;
+      }
+    </style>
+  </head>
+  <body style="margin: 180px auto; padding: 40px">
+    <div class="ascii-title">
+      <pre>
+██████╗ ██╗       ██████╗██████╗ ████████╗
+██╔══██╗██║      ██╔════╝██╔══██╗╚══██╔══╝
+██████╔╝██║█████╗██║     ██████╔╝   ██║   
+██╔═══╝ ██║╚════╝██║     ██╔══██╗   ██║   
+██║     ██║      ╚██████╗██║  ██║   ██║   
+╚═╝     ╚═╝       ╚═════╝╚═╝  ╚═╝   ╚═╝   
+    </pre
+      >
+    </div>
+
+    <div class="description">piCRT: Your Retro Media Terminal</div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <button onclick="playCategory('cartoons')">[1] Play Cartoons</button
+      ><br />
+      <button onclick="playCategory('jdm')">[2] Play JDM</button><br />
+      <button onclick="playCategory('longplays')">[3] Play Longplays</button
+      ><br />
+      <button onclick="playCategory('random')">[4] Play Random</button><br />
+      <button onclick="playCategory('test')">test</button><br />
+      <button onclick="stopPlayback()">[5] Stop Playback</button>
+    </div>
+
+    <script>
+      function playCategory(cat) {
+        fetch("/play/" + cat)
+          .then((response) => response.text())
+          .then((data) => {
+            console.log(data);
+            alert(data);
+          })
+          .catch((err) => alert("Error: " + err));
+      }
+
+      function stopPlayback() {
+        fetch("/stop")
+          .then((response) => response.text())
+          .then((data) => {
+            console.log(data);
+            alert(data);
+          })
+          .catch((err) => alert("Error: " + err));
+      }
+    </script>
+  </body>
+</html>
