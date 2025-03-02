@@ -13,7 +13,6 @@ var categories = map[string]string{
 	"jdm":			 "/home/pi/media/jdm",
 	"anime":     "/home/pi/media/anime",
 	"random":    "/home/pi/media/random",
-	// test
 	"test":      "/mnt/hagrid/piCRT/Akira",
 }
 
@@ -61,7 +60,7 @@ func main() {
 	http.HandleFunc("/play/", playHandler)
 	http.HandleFunc("/stop", stopHandler)
 
-	http.Handle("/", http.FileServer(http.Dir("/home/goatloaf/github/piCRT")))
+	http.Handle("/", http.FileServer(http.Dir("/home/goatloaf/github/piCRT/piCRT-ui/build")))
 
 	fmt.Println("Listening on port 5000")
 	http.ListenAndServe("0.0.0.0:5000", nil)
