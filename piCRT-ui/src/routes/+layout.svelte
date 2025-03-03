@@ -4,7 +4,7 @@
 	let { children } = $props();
 </script>
 
-<div class="mx-auto mt-12 max-w-2xl px-4 font-normal">
+<div class="mx-auto mt-12 max-w-2xl px-4 font-bold">
 	<pre class="mx-auto my-4 text-sm tracking-tighter">
 ██████╗ ██╗       ██████╗██████╗ ████████╗
 ██╔══██╗██║      ██╔════╝██╔══██╗╚══██╔══╝

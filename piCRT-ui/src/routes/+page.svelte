@@ -2,7 +2,7 @@
 	import { playCategory, stopPlayback } from '$lib';
 
 	let currentlyPlaying = $state({
-		name: 'Ghost in the Shell',
+		name: 'Akira (1988)',
 		thumb: '/thumbs/anime.png'
 	});
 
@@ -10,13 +10,13 @@
 		{ name: 'anime', thumb: '/thumbs/anime.png', count: 43 },
 		{ name: 'jdm', thumb: '/thumbs/jdm.png', count: 2 },
 		{ name: 'longplays', thumb: '/thumbs/longplays.png', count: 52 },
-		{ name: 'misc', thumb: '/thumbs/misc.png', count: 32 },
-		{ name: 'test', thumb: '/thumbs/misc.png', count: 12 }
+		{ name: 'skate', thumb: '/thumbs/skate.png', count: 12 },
+		{ name: 'misc', thumb: '/thumbs/misc.png', count: 32 }
 	]);
 </script>
 
 <div class="mx-8 mb-5 text-left font-mono text-sm">
-	<h1 class="mb-1 ml-3 font-normal">[ 📼 Now Playing ]</h1>
+	<h1 class="mb-1 ml-3">[ 📼 Now Playing ]</h1>
 
 	<div class="mx-auto flex flex-col">
 		<div class="relative">
@@ -38,7 +38,7 @@
 </div>
 
 <div class="mx-8 text-left font-mono text-sm">
-	<h1 class="mb-1 ml-3 font-normal">[ 🎥 Categories ]</h1>
+	<h1 class="mb-1 ml-3">[ 🎥 Categories ]</h1>
 
 	<div class="flex flex-col">
 		{#each categories as category, i}

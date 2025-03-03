@@ -8,11 +8,11 @@ import (
 )
 
 var categories = map[string]string{
-	"longplays": "/home/pi/media/longplays",
-	"jdm":			 "/home/pi/media/jsm",
 	"anime":     "/home/pi/media/anime",
+	"skate": 		 "/home/pi/media/skate",
+	"jdm":			 "/home/pi/media/jdm",
+	"longplays": "/home/pi/media/longplays",
 	"misc":  		 "/home/pi/media/misc",	
-	"test":      "/mnt/hagrid/piCRT/Akira",
 }
 
 func playHandler(w http.ResponseWriter, r *http.Request) {
@@ -54,6 +54,8 @@ func stopHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, "Stopping playback")
 }
+
+
 
 func main() {
 	http.HandleFunc("/play/", playHandler)
