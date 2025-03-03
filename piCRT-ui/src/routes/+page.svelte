@@ -15,7 +15,7 @@
 	]);
 </script>
 
-<div class="mx-auto mb-5 w-full text-left font-mono text-sm">
+<div class="mx-8 mb-5 text-left font-mono text-sm">
 	<h1 class="mb-1 ml-3 font-normal">[ 📼 Now Playing ]</h1>
 
 	<div class="mx-auto flex flex-col">

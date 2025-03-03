@@ -9,10 +9,9 @@ import (
 
 var categories = map[string]string{
 	"longplays": "/home/pi/media/longplays",
-	"movies":    "/home/pi/media/movies",
-	"jdm":			 "/home/pi/media/jdm",
+	"jdm":			 "/home/pi/media/jsm",
 	"anime":     "/home/pi/media/anime",
-	"random":    "/home/pi/media/random",
+	"misc":  		 "/home/pi/media/misc",	
 	"test":      "/mnt/hagrid/piCRT/Akira",
 }
 
@@ -60,7 +59,7 @@ func main() {
 	http.HandleFunc("/play/", playHandler)
 	http.HandleFunc("/stop", stopHandler)
 
-	http.Handle("/", http.FileServer(http.Dir("/home/goatloaf/github/piCRT/piCRT-ui/build")))
+	http.Handle("/", http.FileServer(http.Dir("/home/pi/piCRT/build")))
 
 	fmt.Println("Listening on port 5000")
 	http.ListenAndServe("0.0.0.0:5000", nil)
