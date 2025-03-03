@@ -14,6 +14,11 @@
 
 ---
 
+## Screenshots
+![image](https://github.com/user-attachments/assets/408542aa-44d5-4b7c-bcb3-3685303133d2)
+
+---
+
 ## **🚀 Installation & Setup**
 
 ### **1️⃣ Clone the Repository**
