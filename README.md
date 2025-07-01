@@ -4,43 +4,6 @@
 
 ---
 
-## **🛠️ Dev Mode & Media Path**
-
-Want to use a different media folder for development or testing? Just set the `PICRT_MEDIA_PATH` environment variable when you run the server. This way, you don't have to edit the code to switch between your dev and production media folders.
-
-**Why?**
-
-- Makes it easy to test with a different set of videos on your laptop or dev machine.
-- Keeps your production setup clean and safe.
-
-**How to use:**
-
-- **On Linux/macOS:**
-  ```sh
-  PICRT_MEDIA_PATH=/path/to/your/dev/media go run server.go
-  # or if running the built binary
-  PICRT_MEDIA_PATH=/path/to/your/dev/media ./server
-  ```
-- **On Windows (cmd):**
-  ```cmd
-  set PICRT_MEDIA_PATH=C:\path\to\your\dev\media
-  go run server.go
-  ```
-- **On Windows (PowerShell):**
-  ```powershell
-  $env:PICRT_MEDIA_PATH="C:\path\to\your\dev\media"
-  go run server.go
-  ```
-- **For production/systemd:**
-  Add this to your service file:
-  ```ini
-  Environment=PICRT_MEDIA_PATH=/home/pi/media/
-  ```
-
-If you don't set it, the server defaults to `/home/pi/media/`.
-
----
-
 ## **📜 Features**
 
 - 🔹 ASCII/BBS-style UI
@@ -162,6 +125,43 @@ cd /home/pi/piCRT
 sudo systemctl status piCRT   # Check service status
 journalctl -u piCRT --follow  # View logs
 ```
+
+---
+
+## **🛠️ Dev Mode & Media Path**
+
+Want to use a different media folder for development or testing? Just set the `PICRT_MEDIA_PATH` environment variable when you run the server. This way, you don't have to edit the code to switch between your dev and production media folders.
+
+**Why?**
+
+- Makes it easy to test with a different set of videos on your laptop or dev machine.
+- Keeps your production setup clean and safe.
+
+**How to use:**
+
+- **On Linux/macOS:**
+  ```sh
+  PICRT_MEDIA_PATH=/path/to/your/dev/media go run server.go
+  # or if running the built binary
+  PICRT_MEDIA_PATH=/path/to/your/dev/media ./server
+  ```
+- **On Windows (cmd):**
+  ```cmd
+  set PICRT_MEDIA_PATH=C:\path\to\your\dev\media
+  go run server.go
+  ```
+- **On Windows (PowerShell):**
+  ```powershell
+  $env:PICRT_MEDIA_PATH="C:\path\to\your\dev\media"
+  go run server.go
+  ```
+- **For production/systemd:**
+  Add this to your service file:
+  ```ini
+  Environment=PICRT_MEDIA_PATH=/home/pi/media/
+  ```
+
+If you don't set it, the server defaults to `/home/pi/media/`.
 
 ---
 
