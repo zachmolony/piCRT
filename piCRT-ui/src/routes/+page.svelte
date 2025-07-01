@@ -7,9 +7,20 @@
 	let selectedCategory: string | null = null;
 	let loadingCategories = false;
 	let loadingVideos = false;
+	let nowPlaying = '';
 
-	onMount(async () => {
-		await loadCategories();
+	onMount(() => {
+		loadCategories();
+		const interval = setInterval(async () => {
+			try {
+				const res = await fetch('http://localhost:5000/nowplaying');
+				const data = await res.json();
+				nowPlaying = data.nowPlaying || '';
+			} catch {
+				nowPlaying = '';
+			}
+		}, 2000);
+		return () => clearInterval(interval);
 	});
 
 	async function loadCategories() {
@@ -69,10 +80,9 @@
 	<div class="mx-auto flex flex-col">
 		<div class="relative">
 			<pre>+---------------------------------+</pre>
-			<pre>|                                 |</pre>
+			<pre>| {nowPlaying || 'Nothing playing'}                 |</pre>
 			<pre>|                                 |</pre>
 			<pre>+---------------------------------+</pre>
-			<!-- You can add now playing info here if you want -->
 		</div>
 	</div>
 </div>
@@ -80,8 +90,8 @@
 <div class="mx-8 text-left font-mono text-sm">
 	{#if view === 'categories'}
 		<h1 class="mb-1 ml-3">[ 🎥 Categories ]</h1>
-		<button class="mb-2 rounded border border-green-500 px-2 py-1" on:click={shuffleAllCategories}
-			>[ SHUFFLE ALL ]</button
+		<button class="mb-2 cursor-pointer px-1 py-1 text-xs" on:click={shuffleAllCategories}
+			>{'>'} SHUFFLE ALL {'<'}</button
 		>
 		{#if loadingCategories}
 			<p>Loading categories...</p>
@@ -99,8 +109,8 @@
 								{category}
 							</p>
 							<button
-								class="rounded border border-green-500 px-2 py-1 text-xs"
-								on:click={() => shuffleCategory(category)}>[ SHUFFLE ]</button
+								class="cursor-pointer px-1 py-1 text-xs"
+								on:click={() => shuffleCategory(category)}>{'>'} SHUFFLE {'<'}</button
 							>
 						</div>
 					</div>
@@ -109,8 +119,8 @@
 		{/if}
 	{:else if view === 'videos'}
 		<h1 class="mb-1 ml-3">[ 📂 {selectedCategory} ]</h1>
-		<button class="mb-2 rounded border border-green-500 px-2 py-1" on:click={backToCategories}
-			>[ BACK ]</button
+		<button class="mb-2 cursor-pointer px-1 py-1 text-xs" on:click={backToCategories}
+			>{'>'} BACK {'<'}</button
 		>
 		{#if loadingVideos}
 			<p>Loading videos...</p>

@@ -14,6 +14,7 @@ import (
 var dev = true 
 
 var basePath string
+var currentlyPlaying string
 
 func init() {
 	if dev {
@@ -74,6 +75,7 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 		// Play a specific video
 		video := parts[1]
 		filePath := filepath.Join(categoryPath, video)
+		currentlyPlaying = fmt.Sprintf("%s/%s", category, video)
 		mpvCmd := exec.Command("mpv", "--fs", filePath)
 		err := mpvCmd.Start()
 		if err != nil {
@@ -86,6 +88,7 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Shuffle mode: play all videos in the category, shuffled and looped
+	currentlyPlaying = fmt.Sprintf("%s (shuffled)", category)
 	mpvCmd := exec.Command("bash", "-c", fmt.Sprintf(
 		"mpv --fs --loop-playlist=inf --shuffle '%s'/*",
 		categoryPath,
@@ -97,6 +100,12 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintf(w, "Now playing (shuffled): %s", category)
 	fmt.Printf("Playing shuffled playlist: %s/*\n", categoryPath)
+}
+
+func nowPlayingHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"nowPlaying": currentlyPlaying})
 }
 
 func stopHandler(w http.ResponseWriter, r *http.Request) {
@@ -132,6 +141,7 @@ func main() {
 	http.HandleFunc("/stop", stopHandler)
 	http.HandleFunc("/categories", getCategoriesHandler)
 	http.HandleFunc("/videos/", getVideosHandler)
+	http.HandleFunc("/nowplaying", nowPlayingHandler)
 
 	http.Handle("/", http.FileServer(http.Dir("/home/pi/piCRT/build")))
 
