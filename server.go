@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -21,34 +22,74 @@ func init() {
 	}
 }
 
-func playHandler(w http.ResponseWriter, r *http.Request) {
+func getVideosHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	category := r.URL.Path[len("/play/"):]
-	path := basePath + category
+	category := strings.TrimPrefix(r.URL.Path, "/videos/")
+	path := filepath.Join(basePath, category)
 
-	findCmd := exec.Command("bash", "-c", fmt.Sprintf("find '%s' -type f \\( -iname '*.mp4' -o -iname '*.mkv' -o -iname '*.avi' -o -iname '*.mov' -o -iname '*.webm' -o -iname '*.flv' -o -iname '*.mpeg' \\) | shuf -n 1", path))
-	filePathBytes, err := findCmd.Output()
+	entries, err := os.ReadDir(path)
 	if err != nil {
-		http.Error(w, "Failed to find media", http.StatusInternalServerError)
+		http.Error(w, "Failed to list videos", http.StatusInternalServerError)
 		return
 	}
 
-	filePath := strings.TrimSpace(string(filePathBytes)) 
+	var videos []string
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			name := entry.Name()
+			if strings.HasSuffix(strings.ToLower(name), ".mp4") ||
+				strings.HasSuffix(strings.ToLower(name), ".mkv") ||
+				strings.HasSuffix(strings.ToLower(name), ".avi") ||
+				strings.HasSuffix(strings.ToLower(name), ".mov") ||
+				strings.HasSuffix(strings.ToLower(name), ".webm") ||
+				strings.HasSuffix(strings.ToLower(name), ".flv") ||
+				strings.HasSuffix(strings.ToLower(name), ".mpeg") {
+				videos = append(videos, name)
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(videos)
+}
+
+func playHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	path := strings.TrimPrefix(r.URL.Path, "/play/")
+	parts := strings.SplitN(path, "/", 2)
+	category := parts[0]
+	categoryPath := filepath.Join(basePath, category)
 
 	exec.Command("pkill", "-f", "mpv").Run()
 
-	mpvCmd := exec.Command("bash", "-c", fmt.Sprintf("mpv --fs --loop-playlist=inf --shuffle '%s'/*", path))
-	err = mpvCmd.Start() 
+	if len(parts) == 2 {
+		// Play a specific video
+		video := parts[1]
+		filePath := filepath.Join(categoryPath, video)
+		mpvCmd := exec.Command("mpv", "--fs", filePath)
+		err := mpvCmd.Start()
+		if err != nil {
+			http.Error(w, "Failed to start playback", http.StatusInternalServerError)
+			return
+		}
+		fmt.Fprintf(w, "Now playing: %s/%s", category, video)
+		fmt.Printf("Playing: %s\n", filePath)
+		return
+	}
 
+	// Shuffle mode: play all videos in the category, shuffled and looped
+	mpvCmd := exec.Command("bash", "-c", fmt.Sprintf(
+		"mpv --fs --loop-playlist=inf --shuffle '%s'/*",
+		categoryPath,
+	))
+	err := mpvCmd.Start()
 	if err != nil {
 		http.Error(w, "Failed to start playback", http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Fprintf(w, "Now playing: %s", category)
-	fmt.Printf("Playing: %s\n", filePath)
+	fmt.Fprintf(w, "Now playing (shuffled): %s", category)
+	fmt.Printf("Playing shuffled playlist: %s/*\n", categoryPath)
 }
-
 
 func stopHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -57,7 +98,6 @@ func stopHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, "Stopping playback")
 }
-
 
 func getCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -79,11 +119,11 @@ func getCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(categoriesData)
 }
 
-
 func main() {
 	http.HandleFunc("/play/", playHandler)
 	http.HandleFunc("/stop", stopHandler)
 	http.HandleFunc("/categories", getCategoriesHandler)
+	http.HandleFunc("/videos/", getVideosHandler)
 
 	http.Handle("/", http.FileServer(http.Dir("/home/pi/piCRT/build")))
 
