@@ -14,16 +14,29 @@
 
 	async function loadCategories() {
 		loadingCategories = true;
-		const res = await fetch('http://localhost:5000/categories');
-		categories = await res.json();
+		try {
+			const res = await fetch('http://localhost:5000/categories');
+			let data = await res.json();
+			if (!Array.isArray(data)) data = [];
+			categories = data;
+		} catch (e) {
+			categories = [];
+		}
 		loadingCategories = false;
 	}
 
 	async function openCategory(category: string) {
 		selectedCategory = category;
 		loadingVideos = true;
-		const res = await fetch(`http://localhost:5000/videos/${category}`);
-		videos = await res.json();
+		let data = [];
+		try {
+			const res = await fetch(`http://localhost:5000/videos/${encodeURIComponent(category)}`);
+			data = await res.json();
+			if (!Array.isArray(data)) data = [];
+			videos = data;
+		} catch (e) {
+			videos = [];
+		}
 		view = 'videos';
 		loadingVideos = false;
 	}

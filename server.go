@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,16 +25,23 @@ func init() {
 
 func getVideosHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	category := strings.TrimPrefix(r.URL.Path, "/videos/")
+	categoryEnc := strings.TrimPrefix(r.URL.Path, "/videos/")
+	category, err := url.PathUnescape(categoryEnc)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]string{})
+		return
+	}
 	path := filepath.Join(basePath, category)
 
 	entries, err := os.ReadDir(path)
 	if err != nil {
-		http.Error(w, "Failed to list videos", http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]string{})
 		return
 	}
 
-	var videos []string
+	videos := []string{}
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			name := entry.Name()
