@@ -11,21 +11,28 @@ import (
 	"strings"
 )
 
-var dev = true 
-
 var basePath string
 var currentlyPlaying string
 
 func init() {
-	if dev {
-		basePath = "/mnt/hagrid/piCRT/"
-	} else {
+	basePath = os.Getenv("PICRT_MEDIA_PATH")
+	if basePath == "" {
 		basePath = "/home/pi/media/"
 	}
 }
 
-func getVideosHandler(w http.ResponseWriter, r *http.Request) {
+func setCORS(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
+func getVideosHandler(w http.ResponseWriter, r *http.Request) {
+	setCORS(w)
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
 	categoryEnc := strings.TrimPrefix(r.URL.Path, "/videos/")
 	category, err := url.PathUnescape(categoryEnc)
 	if err != nil {
@@ -63,7 +70,11 @@ func getVideosHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func playHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	setCORS(w)
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
 	path := strings.TrimPrefix(r.URL.Path, "/play/")
 	parts := strings.SplitN(path, "/", 2)
 	category := parts[0]
@@ -103,13 +114,21 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func nowPlayingHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	setCORS(w)
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"nowPlaying": currentlyPlaying})
 }
 
 func stopHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	setCORS(w)
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
 	cmd := exec.Command("bash", "-c", "pkill -f mpv")
 	cmd.Start()
 
@@ -117,7 +136,11 @@ func stopHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCategoriesHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	setCORS(w)
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
 	var categoriesData []string
 
 	entries, err := os.ReadDir(basePath)
@@ -136,12 +159,57 @@ func getCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(categoriesData)
 }
 
+func getCategoryInfoHandler(w http.ResponseWriter, r *http.Request) {
+	setCORS(w)
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	type CatInfo struct {
+		Name  string `json:"name"`
+		Count int    `json:"count"`
+	}
+	var result []CatInfo
+
+	entries, err := os.ReadDir(basePath)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]CatInfo{})
+		return
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			category := entry.Name()
+			files, _ := os.ReadDir(filepath.Join(basePath, category))
+			count := 0
+			for _, f := range files {
+				if !f.IsDir() {
+					name := f.Name()
+					if strings.HasSuffix(strings.ToLower(name), ".mp4") ||
+						strings.HasSuffix(strings.ToLower(name), ".mkv") ||
+						strings.HasSuffix(strings.ToLower(name), ".avi") ||
+						strings.HasSuffix(strings.ToLower(name), ".mov") ||
+						strings.HasSuffix(strings.ToLower(name), ".webm") ||
+						strings.HasSuffix(strings.ToLower(name), ".flv") ||
+						strings.HasSuffix(strings.ToLower(name), ".mpeg") {
+						count++
+					}
+				}
+			}
+			result = append(result, CatInfo{Name: category, Count: count})
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
 func main() {
 	http.HandleFunc("/play/", playHandler)
 	http.HandleFunc("/stop", stopHandler)
 	http.HandleFunc("/categories", getCategoriesHandler)
 	http.HandleFunc("/videos/", getVideosHandler)
 	http.HandleFunc("/nowplaying", nowPlayingHandler)
+	http.HandleFunc("/categoryinfo", getCategoryInfoHandler)
 
 	http.Handle("/", http.FileServer(http.Dir("/home/pi/piCRT/build")))
 
