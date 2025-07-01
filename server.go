@@ -1,28 +1,30 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 )
 
-var categories = map[string]string{
-	"anime":     "/home/pi/media/anime",
-	"skate": 		 "/home/pi/media/skate",
-	"jdm":			 "/home/pi/media/jdm",
-	"longplays": "/home/pi/media/longplays",
-	"misc":  		 "/home/pi/media/misc",	
+var dev = true 
+
+var basePath string
+
+func init() {
+	if dev {
+		basePath = "/mnt/hagrid/piCRT/"
+	} else {
+		basePath = "/home/pi/media/"
+	}
 }
 
 func playHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	category := r.URL.Path[len("/play/"):]
-	path, exists := categories[category]
-
-	if !exists {
-		http.Error(w, "Invalid category", http.StatusBadRequest)
-		return
-	}
+	path := basePath + category
 
 	findCmd := exec.Command("bash", "-c", fmt.Sprintf("find '%s' -type f \\( -iname '*.mp4' -o -iname '*.mkv' -o -iname '*.avi' -o -iname '*.mov' -o -iname '*.webm' -o -iname '*.flv' -o -iname '*.mpeg' \\) | shuf -n 1", path))
 	filePathBytes, err := findCmd.Output()
@@ -35,7 +37,7 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 
 	exec.Command("pkill", "-f", "mpv").Run()
 
-	mpvCmd := exec.Command("mpv", "--fs", filePath)
+	mpvCmd := exec.Command("bash", "-c", fmt.Sprintf("mpv --fs --loop-playlist=inf --shuffle '%s'/*", path))
 	err = mpvCmd.Start() 
 
 	if err != nil {
@@ -49,6 +51,7 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 
 
 func stopHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	cmd := exec.Command("bash", "-c", "pkill -f mpv")
 	cmd.Start()
 
@@ -56,10 +59,31 @@ func stopHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
+func getCategoriesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	var categoriesData []string
+
+	entries, err := os.ReadDir(basePath)
+	if err != nil {
+		http.Error(w, "Failed to find categories", http.StatusInternalServerError)
+		return
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			categoriesData = append(categoriesData, entry.Name())
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(categoriesData)
+}
+
 
 func main() {
 	http.HandleFunc("/play/", playHandler)
 	http.HandleFunc("/stop", stopHandler)
+	http.HandleFunc("/categories", getCategoriesHandler)
 
 	http.Handle("/", http.FileServer(http.Dir("/home/pi/piCRT/build")))
 
