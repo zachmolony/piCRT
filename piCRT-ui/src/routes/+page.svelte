@@ -1,18 +1,31 @@
 <script lang="ts">
 	import { playCategory, stopPlayback } from '$lib';
+	import { onMount } from 'svelte';
 
 	let currentlyPlaying = $state({
 		name: 'Akira (1988)',
 		thumb: '/thumbs/anime.png'
 	});
 
-	let categories = $state([
-		{ name: 'anime', thumb: '/thumbs/anime.png', count: 43 },
-		{ name: 'jdm', thumb: '/thumbs/jdm.png', count: 2 },
-		{ name: 'longplays', thumb: '/thumbs/longplays.png', count: 52 },
-		{ name: 'skate', thumb: '/thumbs/skate.png', count: 12 },
-		{ name: 'misc', thumb: '/thumbs/misc.png', count: 32 }
-	]);
+	let categories = $state([]);
+
+	async function getCategories() {
+		const res = await fetch('http://localhost:5000/categories');
+		const data = await res.json();
+
+		console.log(data);
+
+		// If your backend just returns an array of names, map them to thumbs here:
+		categories = data.map((name: string) => ({
+			name,
+			thumb: `/thumbs/${name}.png`
+			// You can add count if you want, or leave it out for now
+		}));
+
+		console.log(categories);
+	}
+
+	onMount(getCategories);
 </script>
 
 <div class="mx-8 mb-5 text-left font-mono text-sm">
@@ -58,7 +71,7 @@
 						<img class="aspect-square h-8" src={category.thumb} alt="" />
 
 						<p>{category.name}</p>
-						<p class="text-xs">[ {category.count} videos ]</p>
+						<!-- <p class="text-xs">[ {category.count} videos ]</p> -->
 					</div></button
 				>
 			</div>
